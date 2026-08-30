@@ -1,38 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sergio Vocab Quest</title>
-<style>
-:root{--bg:#0f1226;--bg2:#171b35;--card:#171c39;--card2:#1e2450;--panel:#141834;--text:#f5f7ff;--muted:#aab3d4;--accent:#7f5cff;--accent2:#27d7b8;--accent3:#ffd54f;--good:#1f9d63;--bad:#d94b68;--border:rgba(255,255,255,.08);--shadow:0 18px 50px rgba(0,0,0,.35)}
-*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(127,92,255,.30),transparent 28%),radial-gradient(circle at top right,rgba(39,215,184,.22),transparent 22%),linear-gradient(180deg,var(--bg),var(--bg2));min-height:100vh}.wrap{max-width:1020px;margin:0 auto;padding:18px}.card,.panel{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}.hero{padding:24px;overflow:hidden;position:relative}.hero::before,.hero::after{content:"";position:absolute;border-radius:999px;filter:blur(28px);opacity:.35;z-index:0}.hero::before{width:220px;height:220px;right:-60px;top:-50px;background:#7f5cff}.hero::after{width:180px;height:180px;left:-40px;bottom:-60px;background:#27d7b8}.hero>*{position:relative;z-index:1}.badge{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.05);font-size:13px;color:#cfd6f4;font-weight:700}h1{font-size:34px;line-height:1.05;margin:14px 0 8px}.sub{max-width:640px;color:var(--muted);font-size:15px;line-height:1.55;margin:0}.hero-top{display:flex;gap:18px;justify-content:space-between;flex-wrap:wrap}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.stat{min-width:130px;padding:14px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid var(--border)}.stat .n{font-size:22px;font-weight:900}.stat .l{font-size:12px;color:var(--muted);margin-top:3px}.meme-stack{display:grid;gap:10px;min-width:260px;max-width:300px}.meme-card{background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.05));border:1px solid var(--border);border-radius:20px;padding:12px;display:flex;gap:12px;align-items:center;transform:rotate(-2deg)}.meme-card:nth-child(2){transform:rotate(2deg)}.meme-pic{width:62px;height:62px;border-radius:18px;background:linear-gradient(135deg,#ffd54f,#ff9f68);display:grid;place-items:center;font-size:34px;flex:0 0 auto}.meme-text strong{display:block;font-size:14px}.meme-text span{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:4px}.section{padding:18px;margin-top:16px}.section-title{font-size:20px;font-weight:900;margin:0 0 12px}.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}button{font:inherit}.mode{border:1px solid var(--border);border-radius:22px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));color:var(--text);text-align:left;cursor:pointer;min-height:128px;transition:.15s transform ease,.15s border-color ease,.15s box-shadow ease}.mode:hover,.answer:hover,.ghost:hover,.special:hover{transform:translateY(-2px);border-color:rgba(127,92,255,.55)}.mode .icon{font-size:24px}.mode strong{display:block;font-size:16px;margin-top:8px}.mode span{display:block;font-size:13px;color:var(--muted);line-height:1.45;margin-top:4px}.special{width:100%;padding:16px 18px;border-radius:22px;border:1px solid var(--border);background:linear-gradient(90deg,rgba(255,213,79,.14),rgba(255,255,255,.04));color:var(--text);text-align:left;cursor:pointer}.special .title{font-weight:900}.special .sub{font-size:13px;color:var(--muted);margin-top:4px}.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.meta{display:flex;gap:10px;flex-wrap:wrap}.meta-badge{padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:13px;color:#d8def7;font-weight:800}.ghost,.primary{border:none;border-radius:16px;padding:12px 16px;cursor:pointer;font-weight:900}.ghost{color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--border)}.primary{width:100%;color:#fff;background:linear-gradient(90deg,var(--accent),#9f80ff);box-shadow:0 14px 24px rgba(127,92,255,.28)}.progress{height:12px;border-radius:999px;overflow:hidden;margin:16px 0 18px;background:rgba(255,255,255,.08);border:1px solid var(--border)}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));position:relative}.bar::after{content:"🐾";position:absolute;right:6px;top:50%;transform:translateY(-52%);font-size:14px}.prompt-label{color:#b9c2e6;font-size:12px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}.question{font-size:29px;line-height:1.18;font-weight:900;margin:0 0 14px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{width:100%;border:1px solid var(--border);border-radius:18px;padding:16px 14px;min-height:72px;color:var(--text);background:rgba(255,255,255,.05);text-align:left;cursor:pointer;font-weight:800;box-shadow:0 8px 18px rgba(0,0,0,.14);transition:.12s transform ease,.12s border-color ease}.answer:disabled{cursor:default}.correct{background:rgba(31,157,99,.20)!important;border-color:rgba(31,157,99,.95)!important}.wrong{background:rgba(217,75,104,.18)!important;border-color:rgba(217,75,104,.95)!important}.feedback{margin-top:14px;padding:16px;border-radius:18px;border:1px solid var(--border);background:rgba(255,255,255,.05);line-height:1.55}.reaction{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.07);font-size:13px;font-weight:900;margin-bottom:10px}.hidden{display:none!important}.finish{text-align:center;padding:24px}.finish .big{font-size:54px}.finish h2{font-size:28px;margin:10px 0 8px}.btn-grid{display:grid;gap:10px;max-width:420px;margin:18px auto 0}details summary{cursor:pointer;font-weight:900}.study-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:14px}.study{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:18px;padding:13px}.small{font-size:13px;color:var(--muted);line-height:1.45}.foot{margin-top:12px;color:var(--muted);font-size:12px;text-align:center}.overlay{position:fixed;inset:0;background:rgba(4,7,20,.65);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.overlay.show{display:flex}.popup{width:min(480px,100%);border-radius:28px;padding:22px;background:linear-gradient(180deg,#1d2449,#141a36);border:1px solid var(--border);box-shadow:var(--shadow);text-align:center}.popup-pic{width:96px;height:96px;border-radius:24px;margin:0 auto 14px;display:grid;place-items:center;font-size:54px;background:linear-gradient(135deg,#ffd54f,#ff9f68)}.popup h3{font-size:24px;margin:8px 0}.popup p{color:var(--muted);line-height:1.55;margin:0}.popup-buttons{display:grid;gap:10px;margin-top:14px}@media(max-width:740px){h1{font-size:28px}.question{font-size:24px}.answers{grid-template-columns:1fr}.meme-stack{max-width:none}}
-</style>
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <div class="wrap">
-<section class="card hero"><div class="hero-top"><div><div class="badge">🐱 7th Grade Vocabulary • 20 words</div><h1>Sergio, Let’s Crush This Vocab Test! 🐱🎯</h1><p class="sub">Pick a mode, build your streak, and level up your vocab. Short practice now = less stress later.</p><div class="stats"><div class="stat"><div class="n" id="score">0</div><div class="l">Points</div></div><div class="stat"><div class="n" id="mastered">0/20</div><div class="l">Mastered</div></div><div class="stat"><div class="n" id="missedCount">0</div><div class="l">Missed</div></div></div></div><div class="meme-stack"><div class="meme-card"><div class="meme-pic">😼</div><div class="meme-text"><strong>Big brain cat mode</strong><span>Vocabulary grind activated.</span></div></div><div class="meme-card"><div class="meme-pic">😹</div><div class="meme-text"><strong>Study now. Zoomies later.</strong><span>Main character homework energy.</span></div></div></div></div></section>
-<section id="menu" class="panel section"><h2 class="section-title">Choose your vibe</h2><div class="mode-grid"><button class="mode" data-mode="definition"><div class="icon">🧠</div><strong>Definition → Word</strong><span>Read the meaning and pick the word.</span></button><button class="mode" data-mode="word"><div class="icon">📖</div><strong>Word → Definition</strong><span>See the word and choose the meaning.</span></button><button class="mode" data-mode="context"><div class="icon">✏️</div><strong>Sentence Challenge</strong><span>Pick the word that fits.</span></button><button class="mode" data-mode="synonym"><div class="icon">🔁</div><strong>Synonyms</strong><span>Choose the closest meaning.</span></button><button class="mode" data-mode="antonym"><div class="icon">↔️</div><strong>Antonyms</strong><span>Choose the opposite meaning.</span></button><button class="mode" data-mode="mixed"><div class="icon">🔥</div><strong>Mixed Test</strong><span>Random mix of all question styles.</span></button></div><div style="margin-top:12px"><button id="missedBtn" class="special"><div class="title">🎯 Comeback Mode</div><div class="sub" id="missedLabel">No missed words yet — nice.</div></button></div></section>
-<section id="game" class="panel section hidden"><div class="topline"><button id="back" class="ghost">← Modes</button><div class="meta"><div class="meta-badge" id="modeName">Mode</div><div class="meta-badge" id="progressText">1/20</div><div class="meta-badge">🔥 Streak: <span id="streak">0</span></div></div></div><div class="progress"><div id="bar" class="bar"></div></div><div id="label" class="prompt-label"></div><h2 id="question" class="question"></h2><div id="answers" class="answers"></div><div id="feedback" class="feedback hidden"></div><button id="next" class="primary hidden" style="margin-top:14px">Next question →</button></section>
-<section id="finish" class="panel finish hidden"><div class="big" id="finishEmoji">🏆😻</div><h2>Round complete!</h2><p id="finishScore" class="small"></p><p id="finishMessage"></p><div class="btn-grid"><button id="again" class="primary">Play this mode again</button><button id="choose" class="ghost">Choose another mode</button></div></section>
-<details class="panel section"><summary>📚 Quick Study Sheet</summary><div id="study" class="study-grid"></div></details><div class="foot">Tip: start with Definition → Word, then hit Mixed Test. 🐾</div></div>
-<div id="popupOverlay" class="overlay"><div class="popup"><div id="popupPic" class="popup-pic">😼</div><h3 id="popupTitle">Big Brain Cat Mode</h3><p id="popupText">You’re cooking.</p><div class="popup-buttons"><button id="popupContinue" class="primary">Keep going</button><button id="popupClose" class="ghost">Close</button></div></div></div>
-<script>
-const vocab=[{w:'adjacent',def:'near, next to, adjoining',syn:['nearby','neighboring'],ant:['distant','faraway'],sent:'The library is ___ to the school, so students can walk there quickly.'},{w:'alight',def:'to get down from or come down from; to land',syn:['dismount','land'],ant:['board','mount'],sent:'The passengers began to ___ from the bus when it reached the museum.'},{w:'barren',def:'not productive; bare',syn:['sterile','desolate'],ant:['fertile','fruitful'],sent:'After months without rain, the field looked dry and ___.'},{w:'disrupt',def:'to break up or disturb',syn:['disturb','interrupt'],ant:['organize','arrange'],sent:'A loud fire alarm can ___ a class.'},{w:'dynasty',def:'a powerful family or group of rulers that keeps power for a long time',syn:['ruling house','regime'],ant:['temporary rule','single term'],sent:'For generations, the same royal family controlled the kingdom as a powerful ___.'},{w:'foretaste',def:'an advance indication, sample, or warning of something to come',syn:['preview','anticipation'],ant:['aftermath','ending'],sent:'The first chapter gave readers a ___ of the adventure ahead.'},{w:'germinate',def:'to begin to grow or come into being',syn:['sprout','develop'],ant:['wither','die'],sent:'With enough water and sunlight, the seeds will ___.'},{w:'humdrum',def:'ordinary, dull, routine, without variation',syn:['boring','monotonous'],ant:['exciting','thrilling'],sent:'The same ___ routine every day made him wish for a new challenge.'},{w:'hurtle',def:'to rush violently or dash headlong',syn:['speed','dash'],ant:['crawl','creep'],sent:'The roller coaster seemed to ___ down the steep track.'},{w:'insinuate',def:'to suggest or hint slyly or indirectly',syn:['imply','hint'],ant:['state directly','announce'],sent:'Without saying it clearly, she tried to ___ that someone had cheated.'},{w:'interminable',def:'endless or so long that it seems endless',syn:['never-ending','endless'],ant:['brief','short'],sent:'The long airport delay felt ___ to the tired travelers.'},{w:'interrogate',def:'to ask questions or examine by questioning',syn:['question','query'],ant:['answer','ignore'],sent:'The detectives needed to ___ the witness.'},{w:'recompense',def:'to repay or reward; a payment for loss, service, or injury',syn:['repay','compensation'],ant:['penalty','loss'],sent:'The owner offered money to ___ the worker for the extra hours.'},{w:'renovate',def:'to repair, restore, or make new again',syn:['repair','restore'],ant:['damage','neglect'],sent:'The family plans to ___ the old kitchen.'},{w:'résumé',def:'a brief written summary of education, work experience, and qualifications',syn:['work summary','job history'],ant:['novel','full biography'],sent:'Before applying for the summer job, he updated his ___.'},{w:'sullen',def:'silent or gloomy because of anger or resentment',syn:['grumpy','morose'],ant:['cheerful','vivacious'],sent:'After losing the game, he became ___ and barely spoke.'},{w:'trickle',def:'to flow or fall by drops or in a small stream',syn:['dribble','drip'],ant:['gush','flood'],sent:'Water began to ___ slowly from the cracked bottle.'},{w:'trivial',def:'not important; minor; commonplace',syn:['insignificant','minor'],ant:['important','weighty'],sent:'The coach ignored the ___ details and focused on the main problem.'},{w:'truce',def:'a pause in fighting; temporary peace',syn:['cease-fire','temporary peace'],ant:['war','warfare'],sent:'The two sides agreed to a short ___.'},{w:'vicious',def:'evil, spiteful, malicious, or painfully severe',syn:['wicked','malicious'],ant:['kind','mild'],sent:'A ___ rumor spread through school and hurt her feelings.'}];
-let state={mode:null,order:[],idx:0,score:0,streak:0,wrong:new Set(),hits:Array(vocab.length).fill(0),roundCorrect:0,roundTotal:0};
-const memeWins=[{pic:'😼',title:'Big Brain Cat Mode',text:'Streak rising. Sergio is cooking.'},{pic:'😹',title:'Purrfect',text:'Brain gains unlocked.'},{pic:'😻',title:'Main Character Energy',text:'That answer was clean.'},{pic:'🐯',title:'Locked In',text:'Study now. Zoomies later.'}];
-const memeOops=[{pic:'🙀',title:'No drama',text:'Even smart cats miss one sometimes.'},{pic:'😿',title:'Reset and run it back',text:'One miss does not cancel the comeback.'},{pic:'😾',title:'Bro...',text:'The cat saw that. Try again next round.'}];
-const streakPopups={3:{pic:'😼',title:'3 in a row!',text:'Nice. Big brain cat mode activated.'},5:{pic:'😻',title:'5 streak!',text:'You are actually locked in right now.'},8:{pic:'🐯',title:'8 streak!',text:'Okay Sergio, this is elite homework behavior.'}};
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],shuffle=a=>{const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x};
-function saveState(){try{localStorage.setItem('sergioVocabQuest',JSON.stringify({score:state.score,hits:state.hits,wrong:[...state.wrong]}))}catch(e){}}function loadState(){try{const raw=localStorage.getItem('sergioVocabQuest');if(!raw)return;const parsed=JSON.parse(raw);state.score=parsed.score||0;state.hits=parsed.hits||state.hits;state.wrong=new Set(parsed.wrong||[])}catch(e){}}function updateStats(){$('#score').textContent=state.score;$('#mastered').textContent=`${state.hits.filter(x=>x>=2).length}/20`;$('#missedCount').textContent=state.wrong.size;$('#missedLabel').textContent=state.wrong.size?`${state.wrong.size} word${state.wrong.size===1?'':'s'} ready for a comeback`:'No missed words yet — nice.';saveState()}
-function showPopup(o){$('#popupPic').textContent=o.pic;$('#popupTitle').textContent=o.title;$('#popupText').textContent=o.text;$('#popupOverlay').classList.add('show')}function hidePopup(){$('#popupOverlay').classList.remove('show')}$('#popupContinue').onclick=hidePopup;$('#popupClose').onclick=hidePopup;$('#popupOverlay').addEventListener('click',e=>{if(e.target.id==='popupOverlay')hidePopup()});
-function showMenu(){$('#game').classList.add('hidden');$('#finish').classList.add('hidden');$('#menu').classList.remove('hidden')}function modeTitle(m){return{definition:'Definition → Word',word:'Word → Definition',context:'Sentence Challenge',synonym:'Synonyms',antonym:'Antonyms',mixed:'Mixed Test',missed:'Comeback Mode'}[m]||m}function startMode(mode){state.mode=mode;state.idx=0;state.roundCorrect=0;state.roundTotal=0;state.streak=0;let pool=mode==='missed'?[...state.wrong]:vocab.map((_,i)=>i);if(!pool.length){showPopup({pic:'😺',title:'No missed words',text:'Nothing to review right now. That is a flex.'});return}state.order=shuffle(pool);$('#menu').classList.add('hidden');$('#finish').classList.add('hidden');$('#game').classList.remove('hidden');renderQuestion()}
-function distractWordIndexes(i){return shuffle(vocab.map((_,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3)}function buildQuestion(i){const v=vocab[i];const qMode=state.mode==='mixed'?shuffle(['definition','word','context','synonym','antonym'])[0]:state.mode;let label='',prompt='',answer='',options=[];if(qMode==='definition'){label='What word means…';prompt=v.def;answer=v.w;options=shuffle([v.w,...distractWordIndexes(i).map(j=>vocab[j].w)])}if(qMode==='word'){label='Choose the best definition';prompt=v.w;answer=v.def;options=shuffle([v.def,...shuffle(vocab.map((x,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3).map(j=>vocab[j].def)])}if(qMode==='context'){label='Complete the sentence';prompt=v.sent.replace('___','□□□□');answer=v.w;options=shuffle([v.w,...distractWordIndexes(i).map(j=>vocab[j].w)])}if(qMode==='synonym'){label='Choose the closest meaning';prompt=`${v.w} is closest in meaning to…`;answer=v.syn[0];const pool=shuffle(vocab.flatMap((x,j)=>j===i?[]:x.syn).filter(x=>x!==answer));options=shuffle([answer,...pool.slice(0,3)])}if(qMode==='antonym'){label='Choose the opposite meaning';prompt=`Which choice is an antonym of ${v.w}?`;answer=v.ant[0];const pool=shuffle(vocab.flatMap((x,j)=>j===i?[]:x.ant).filter(x=>x!==answer));options=shuffle([answer,...pool.slice(0,3)])}return{i,qMode,label,prompt,answer,options,explain:`${v.w} = ${v.def}`,example:v.sent.replace('___',v.w)}}
-function renderQuestion(){const q=buildQuestion(state.order[state.idx]);window.currentQ=q;document.body.dataset.locked='0';$('#modeName').textContent=modeTitle(state.mode);$('#progressText').textContent=`${state.idx+1}/${state.order.length}`;$('#streak').textContent=state.streak;$('#bar').style.width=`${((state.idx+1)/state.order.length)*100}%`;$('#label').textContent=q.label;$('#question').textContent=q.prompt;$('#answers').innerHTML='';$('#feedback').classList.add('hidden');$('#next').classList.add('hidden');q.options.forEach(opt=>{const b=document.createElement('button');b.className='answer';b.textContent=opt;b.onclick=()=>answerQuestion(opt,b);$('#answers').appendChild(b)})}
-function answerQuestion(opt,btn){const q=window.currentQ;if(document.body.dataset.locked==='1')return;document.body.dataset.locked='1';state.roundTotal++;let reactionObj;if(opt===q.answer){state.roundCorrect++;state.streak++;state.score+=100+(state.streak-1)*10;state.hits[q.i]++;if(state.hits[q.i]>=2)state.wrong.delete(q.i);btn.classList.add('correct');reactionObj=memeWins[Math.floor(Math.random()*memeWins.length)];$('#feedback').innerHTML=`<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct!</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;if(streakPopups[state.streak])setTimeout(()=>showPopup(streakPopups[state.streak]),300);if((state.idx+1)%5===0&&state.idx+1<state.order.length)setTimeout(()=>showPopup({pic:'😹',title:'Checkpoint reached',text:'Five questions down. Keep the streak alive.'}),350)}else{state.streak=0;state.wrong.add(q.i);state.hits[q.i]=Math.max(0,state.hits[q.i]-1);btn.classList.add('wrong');$$('.answer').forEach(b=>{if(b.textContent===q.answer)b.classList.add('correct')});reactionObj=memeOops[Math.floor(Math.random()*memeOops.length)];$('#feedback').innerHTML=`<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct answer: ${q.answer}</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`}$$('.answer').forEach(b=>b.disabled=true);$('#feedback').classList.remove('hidden');$('#next').classList.remove('hidden');$('#streak').textContent=state.streak;updateStats()}
-function nextQuestion(){document.body.dataset.locked='0';state.idx++;if(state.idx>=state.order.length)finishRound();else renderQuestion()}function finishRound(){$('#game').classList.add('hidden');$('#finish').classList.remove('hidden');const pct=Math.round((state.roundCorrect/Math.max(1,state.roundTotal))*100);$('#finishScore').textContent=`${state.roundCorrect} of ${state.roundTotal} correct • ${pct}%`;if(pct>=90){$('#finishEmoji').textContent='🏆😻';$('#finishMessage').textContent='Excellent. Cat-approved vocab powers unlocked.';setTimeout(()=>showPopup({pic:'🏆',title:'Victory',text:'That was elite. The cat fully approves.'}),250)}else if(pct>=75){$('#finishEmoji').textContent='🔥😼';$('#finishMessage').textContent='Strong round. One quick review and you are golden.';setTimeout(()=>showPopup({pic:'🔥',title:'Strong round',text:'You are close. Run it back once more.'}),250)}else{$('#finishEmoji').textContent='🧠🐾';$('#finishMessage').textContent='Good practice. Hit Comeback Mode next.';setTimeout(()=>showPopup({pic:'🧠',title:'Good effort',text:'Do Comeback Mode and the hard words will get easier.'}),250)}}
-function buildStudySheet(){const study=$('#study');study.innerHTML='';vocab.forEach((v,i)=>{const d=document.createElement('div');d.className='study';d.innerHTML=`<b>${i+1}. ${v.w}</b><div class="small" style="margin-top:5px">${v.def}</div><div class="small" style="margin-top:8px">Closest meaning: ${v.syn[0]} • Opposite: ${v.ant[0]}</div>`;study.appendChild(d)})}
-$$('.mode').forEach(b=>b.addEventListener('click',()=>startMode(b.dataset.mode)));$('#missedBtn').addEventListener('click',()=>startMode('missed'));$('#back').addEventListener('click',showMenu);$('#choose').addEventListener('click',showMenu);$('#again').addEventListener('click',()=>startMode(state.mode));$('#next').addEventListener('click',nextQuestion);buildStudySheet();loadState();updateStats();
-</script>
+  <section class="card hero">
+    <div class="hero-top">
+      <div>
+        <div class="badge">🐱 7th Grade Vocabulary • 20 words</div>
+        <h1>Sergio, Let’s Crush This Vocab Test! 🐱🎯</h1>
+        <p class="sub">Pick a mode, build your streak, and level up your vocab. Short practice now = less stress later.</p>
+        <div class="stats">
+          <div class="stat"><div class="n" id="score">0</div><div class="l">Points</div></div>
+          <div class="stat"><div class="n" id="mastered">0/20</div><div class="l">Mastered</div></div>
+          <div class="stat"><div class="n" id="missedCount">0</div><div class="l">Missed</div></div>
+        </div>
+      </div>
+      <div class="meme-stack">
+        <div class="meme-card">
+          <div class="meme-pic">😼</div>
+          <div class="meme-text"><strong>Big brain cat mode</strong><span>Vocabulary grind activated.</span></div>
+        </div>
+        <div class="meme-card">
+          <div class="meme-pic">😹</div>
+          <div class="meme-text"><strong>Study now. Zoomies later.</strong><span>Main character homework energy.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="menu" class="panel section">
+    <h2 class="section-title">Choose your vibe</h2>
+    <div class="mode-grid">
+      <button class="mode" data-mode="definition"><div class="icon">🧠</div><strong>Definition → Word</strong><span>Read the meaning and pick the word.</span></button>
+      <button class="mode" data-mode="word"><div class="icon">📖</div><strong>Word → Definition</strong><span>See the word and choose the meaning.</span></button>
+      <button class="mode" data-mode="context"><div class="icon">✏️</div><strong>Sentence Challenge</strong><span>Pick the word that fits.</span></button>
+      <button class="mode" data-mode="synonym"><div class="icon">🔁</div><strong>Synonyms</strong><span>Choose the closest meaning.</span></button>
+      <button class="mode" data-mode="antonym"><div class="icon">↔️</div><strong>Antonyms</strong><span>Choose the opposite meaning.</span></button>
+      <button class="mode" data-mode="mixed"><div class="icon">🔥</div><strong>Mixed Test</strong><span>Random mix of all question styles.</span></button>
+    </div>
+    <div style="margin-top:12px">
+      <button id="missedBtn" class="special">
+        <div class="title">🎯 Comeback Mode</div>
+        <div class="sub" id="missedLabel">No missed words yet — nice.</div>
+      </button>
+    </div>
+  </section>
+
+  <section id="game" class="panel section hidden">
+    <div class="topline">
+      <button id="back" class="ghost">← Modes</button>
+      <div class="meta">
+        <div class="meta-badge" id="modeName">Mode</div>
+        <div class="meta-badge" id="progressText">1/20</div>
+        <div class="meta-badge">🔥 Streak: <span id="streak">0</span></div>
+      </div>
+    </div>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <div id="label" class="prompt-label"></div>
+    <h2 id="question" class="question"></h2>
+    <div id="answers" class="answers"></div>
+    <div id="feedback" class="feedback hidden"></div>
+    <button id="next" class="primary hidden" style="margin-top:14px">Next question →</button>
+  </section>
+
+  <section id="finish" class="panel finish hidden">
+    <div class="big" id="finishEmoji">🏆😻</div>
+    <h2>Round complete!</h2>
+    <p id="finishScore" class="small"></p>
+    <p id="finishMessage"></p>
+    <div class="btn-grid">
+      <button id="again" class="primary">Play this mode again</button>
+      <button id="choose" class="ghost">Choose another mode</button>
+    </div>
+  </section>
+
+  <details class="panel section">
+    <summary>📚 Quick Study Sheet</summary>
+    <div id="study" class="study-grid"></div>
+  </details>
+
+  <div class="foot">Tip: start with Definition → Word, then hit Mixed Test. 🐾</div>
+  <button id="parentBtn" class="parent-link" type="button">Parent</button>
+</div>
+
+<div id="popupOverlay" class="overlay">
+  <div class="popup">
+    <div id="popupPic" class="popup-pic">😼</div>
+    <h3 id="popupTitle">Big Brain Cat Mode</h3>
+    <p id="popupText">You’re cooking.</p>
+    <div class="popup-buttons">
+      <button id="popupContinue" class="primary">Keep going</button>
+      <button id="popupClose" class="ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="parentOverlay" class="overlay" aria-hidden="true">
+  <div class="popup parent-popup">
+    <div id="parentGate" class="parent-pin-wrap">
+      <div class="popup-pic">🔒</div>
+      <h3>Parent Mode</h3>
+      <p>Enter the parent PIN to view Sergio’s study report.</p>
+      <input id="parentPin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Parent PIN">
+      <div id="parentPinError" class="pin-error" aria-live="polite"></div>
+      <div class="popup-buttons">
+        <button id="parentUnlock" class="primary" type="button">Open report</button>
+        <button id="parentCancel" class="ghost" type="button">Cancel</button>
+      </div>
+    </div>
+    <div id="parentDashboard" class="hidden">
+      <div class="parent-head">
+        <div><h3>📊 Sergio’s Study Report</h3><p id="parentLastActive">No activity yet</p></div>
+        <button id="parentClose" class="ghost" type="button">Close</button>
+      </div>
+      <div class="parent-grid">
+        <div class="parent-stat"><div id="parentAccuracy" class="big-number">0%</div><div class="caption">Overall accuracy</div></div>
+        <div class="parent-stat"><div id="parentAnswered" class="big-number">0</div><div class="caption">Questions answered</div></div>
+        <div class="parent-stat"><div id="parentBestStreak" class="big-number">0</div><div class="caption">Best streak</div></div>
+        <div class="parent-stat"><div id="parentMastered" class="big-number">0/20</div><div class="caption">Words mastered</div></div>
+      </div>
+      <div class="parent-section"><h4>Practice modes</h4><div id="parentModes" class="mode-report"></div></div>
+      <div class="parent-section"><h4>Words report</h4><div style="overflow:auto"><table class="word-table"><thead><tr><th>Word</th><th>Correct</th><th>Missed</th><th>Accuracy</th><th>Status</th></tr></thead><tbody id="parentWordRows"></tbody></table></div></div>
+    </div>
+  </div>
+</div>
+<script src="app.js?v=4"></script>
 </body>
 </html>
