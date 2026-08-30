@@ -30,26 +30,35 @@ let state = {
   wrong:new Set(),
   hits:Array(vocab.length).fill(0),
   roundCorrect:0,
-  roundTotal:0
+  roundTotal:0,
+  analytics:{
+    totalAnswered:0,
+    totalCorrect:0,
+    bestStreak:0,
+    lastActive:null,
+    modeRuns:{definition:0,word:0,context:0,synonym:0,antonym:0,mixed:0,missed:0},
+    wordStats:Array.from({length:vocab.length},()=>({correct:0,wrong:0}))
+  }
 };
 
-const catGood = ['😸','😺','🐱','😻'];
-const catOops = ['🙀','😿','😾'];
-const catTitles = [
-  'Sergio, let’s crush this vocab test!',
-  'Main character study mode: on.',
-  'Big brain cat mode: activated.',
-  'Study now. Zoomies later.',
-  'Claw your way to an A, Sergio.',
-  'Teen awesome mode: vocab grind activated.'
+const PARENT_PIN = '2725';
+
+const memeWins = [
+  {pic:'😼',title:'Big Brain Cat Mode',text:'Streak rising. Sergio is cooking.'},
+  {pic:'😹',title:'Purrfect',text:'Brain gains unlocked.'},
+  {pic:'😻',title:'Main Character Energy',text:'That answer was clean.'},
+  {pic:'🐯',title:'Locked In',text:'Study now. Zoomies later.'}
 ];
-const catSubs = [
-  'Meme Cat wisdom: short practice beats panic studying.',
-  'Try one easy mode first, then go full Mixed Test goblin mode.',
-  'Missed words come back, so the hard ones slowly become easy.',
-  'You do not need perfect. You just need practice, Sergio.',
-  'Tiny daily reps = less stress before the test.'
+const memeOops = [
+  {pic:'🙀',title:'No drama',text:'Even smart cats miss one sometimes.'},
+  {pic:'😿',title:'Reset and run it back',text:'One miss does not cancel the comeback.'},
+  {pic:'😾',title:'Bro...',text:'The cat saw that. Try again next round.'}
 ];
+const streakPopups = {
+  3:{pic:'😼',title:'3 in a row!',text:'Nice. Big brain cat mode activated.'},
+  5:{pic:'😻',title:'5 streak!',text:'You are actually locked in right now.'},
+  8:{pic:'🐯',title:'8 streak!',text:'Okay Sergio, this is elite homework behavior.'}
+};
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -57,47 +66,63 @@ const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){ const j=Ma
 
 function saveState(){
   try{
-    localStorage.setItem('sergioCatVocab', JSON.stringify({
+    localStorage.setItem('sergioVocabQuest', JSON.stringify({
       score:state.score,
       hits:state.hits,
-      wrong:[...state.wrong]
+      wrong:[...state.wrong],
+      analytics:state.analytics
     }));
   }catch(e){}
 }
 function loadState(){
   try{
-    const raw = localStorage.getItem('sergioCatVocab');
+    const raw = localStorage.getItem('sergioVocabQuest');
     if(!raw) return;
     const parsed = JSON.parse(raw);
     state.score = parsed.score || 0;
     state.hits = parsed.hits || state.hits;
     state.wrong = new Set(parsed.wrong || []);
+    if(parsed.analytics){
+      state.analytics.totalAnswered = parsed.analytics.totalAnswered || 0;
+      state.analytics.totalCorrect = parsed.analytics.totalCorrect || 0;
+      state.analytics.bestStreak = parsed.analytics.bestStreak || 0;
+      state.analytics.lastActive = parsed.analytics.lastActive || null;
+      state.analytics.modeRuns = {...state.analytics.modeRuns, ...(parsed.analytics.modeRuns || {})};
+      if(Array.isArray(parsed.analytics.wordStats)){
+        state.analytics.wordStats = state.analytics.wordStats.map((base,i)=>({ ...base, ...(parsed.analytics.wordStats[i] || {}) }));
+      }
+    }
   }catch(e){}
 }
-
-function updateHeroCat(icon=null, title=null, subtitle=null){
-  $('#heroCat').textContent = icon || catGood[Math.floor(Math.random()*catGood.length)];
-  $('#catTitle').textContent = title || catTitles[Math.floor(Math.random()*catTitles.length)];
-  $('#catSubtitle').textContent = subtitle || catSubs[Math.floor(Math.random()*catSubs.length)];
-}
-
 function updateStats(){
   $('#score').textContent = state.score;
   $('#mastered').textContent = `${state.hits.filter(x => x >= 2).length}/20`;
   $('#missedCount').textContent = state.wrong.size;
   $('#missedLabel').textContent = state.wrong.size
-    ? `${state.wrong.size} word${state.wrong.size===1?'':'s'} ready for extra practice`
-    : 'No missed words yet — nice!';
+    ? `${state.wrong.size} word${state.wrong.size===1?'':'s'} ready for a comeback`
+    : 'No missed words yet — nice.';
   saveState();
 }
+function showPopup(obj){
+  $('#popupPic').textContent = obj.pic;
+  $('#popupTitle').textContent = obj.title;
+  $('#popupText').textContent = obj.text;
+  $('#popupOverlay').classList.add('show');
+}
+function hidePopup(){
+  $('#popupOverlay').classList.remove('show');
+}
+$('#popupContinue').onclick = hidePopup;
+$('#popupClose').onclick = hidePopup;
+$('#popupOverlay').addEventListener('click', e => {
+  if(e.target.id === 'popupOverlay') hidePopup();
+});
 
 function showMenu(){
   $('#game').classList.add('hidden');
   $('#finish').classList.add('hidden');
   $('#menu').classList.remove('hidden');
-  updateHeroCat();
 }
-
 function modeTitle(m){
   return {
     definition:'Definition → Word',
@@ -106,10 +131,9 @@ function modeTitle(m){
     synonym:'Synonyms',
     antonym:'Antonyms',
     mixed:'Mixed Test',
-    missed:'Missed Words'
+    missed:'Comeback Mode'
   }[m] || m;
 }
-
 function startMode(mode){
   state.mode = mode;
   state.idx = 0;
@@ -118,26 +142,27 @@ function startMode(mode){
   state.streak = 0;
   let pool = mode === 'missed' ? [...state.wrong] : vocab.map((_,i)=>i);
   if(!pool.length){
-    alert('No missed words yet — great job!');
+    showPopup({pic:'😺',title:'No missed words',text:'Nothing to review right now. That is a flex.'});
     return;
   }
   state.order = shuffle(pool);
+  state.analytics.modeRuns[mode] = (state.analytics.modeRuns[mode] || 0) + 1;
+  state.analytics.lastActive = new Date().toISOString();
+  saveState();
   $('#menu').classList.add('hidden');
   $('#finish').classList.add('hidden');
   $('#game').classList.remove('hidden');
   renderQuestion();
 }
-
 function distractWordIndexes(i){
-  return shuffle(vocab.map((_,j)=>j).filter(j=>j!==i)).slice(0,3);
+  return shuffle(vocab.map((_,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3);
 }
-
 function buildQuestion(i){
   const v = vocab[i];
-  let qMode = state.mode === 'mixed'
+  const qMode = state.mode === 'mixed'
     ? shuffle(['definition','word','context','synonym','antonym'])[0]
     : state.mode;
-  let label = '', prompt = '', answer = '', options = [];
+  let label='', prompt='', answer='', options=[];
   if(qMode === 'definition'){
     label = 'What word means…';
     prompt = v.def;
@@ -148,7 +173,7 @@ function buildQuestion(i){
     label = 'Choose the best definition';
     prompt = v.w;
     answer = v.def;
-    options = shuffle([v.def, ...shuffle(vocab.map((x,j)=>j).filter(j=>j!==i)).slice(0,3).map(j=>vocab[j].def)]);
+    options = shuffle([v.def, ...shuffle(vocab.map((x,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3).map(j=>vocab[j].def)]);
   }
   if(qMode === 'context'){
     label = 'Complete the sentence';
@@ -171,12 +196,11 @@ function buildQuestion(i){
     options = shuffle([answer, ...pool.slice(0,3)]);
   }
   return {
-    i, qMode, label, prompt, answer, options,
+    i,qMode,label,prompt,answer,options,
     explain:`${v.w} = ${v.def}`,
     example:v.sent.replace('___', v.w)
   };
 }
-
 function renderQuestion(){
   const q = buildQuestion(state.order[state.idx]);
   window.currentQ = q;
@@ -190,83 +214,138 @@ function renderQuestion(){
   $('#answers').innerHTML = '';
   $('#feedback').classList.add('hidden');
   $('#next').classList.add('hidden');
-
   q.options.forEach(opt=>{
     const b = document.createElement('button');
     b.className = 'answer';
     b.textContent = opt;
-    b.onclick = ()=>answerQuestion(opt, b);
+    b.onclick = ()=>answerQuestion(opt,b);
     $('#answers').appendChild(b);
   });
+}
+function trackAnswer(wordIndex, isCorrect){
+  state.analytics.totalAnswered++;
+  if(isCorrect) state.analytics.totalCorrect++;
+  const item = state.analytics.wordStats[wordIndex] || {correct:0,wrong:0};
+  if(isCorrect) item.correct++; else item.wrong++;
+  state.analytics.wordStats[wordIndex] = item;
+  state.analytics.lastActive = new Date().toISOString();
+  state.analytics.bestStreak = Math.max(state.analytics.bestStreak, state.streak);
+}
 
-  updateHeroCat('😸', `Sergio, ${modeTitle(state.mode)} time.`, 'One question at a time. You got this.');
+function renderParentDashboard(){
+  const a = state.analytics;
+  const accuracy = a.totalAnswered ? Math.round((a.totalCorrect/a.totalAnswered)*100) : 0;
+  $('#parentAccuracy').textContent = `${accuracy}%`;
+  $('#parentAnswered').textContent = a.totalAnswered;
+  $('#parentBestStreak').textContent = a.bestStreak;
+  $('#parentMastered').textContent = `${state.hits.filter(x=>x>=2).length}/${vocab.length}`;
+  $('#parentLastActive').textContent = a.lastActive ? `Last activity: ${new Date(a.lastActive).toLocaleString()}` : 'No activity yet';
+
+  const labels={definition:'Definition → Word',word:'Word → Definition',context:'Sentences',synonym:'Synonyms',antonym:'Antonyms',mixed:'Mixed Test',missed:'Comeback Mode'};
+  $('#parentModes').innerHTML = Object.entries(a.modeRuns).map(([key,val])=>`<span class="mode-chip">${labels[key] || key}: <b>${val}</b></span>`).join('');
+
+  $('#parentWordRows').innerHTML = vocab.map((v,i)=>{
+    const ws=a.wordStats[i] || {correct:0,wrong:0};
+    const total=ws.correct+ws.wrong;
+    const pct=total ? Math.round((ws.correct/total)*100) : 0;
+    let status='Not practiced';
+    let cls='';
+    if(total){
+      if(ws.wrong>=2 || pct<70){status='Needs practice';cls='needs-work';}
+      else if(pct>=85 && total>=2){status='Strong';cls='strong-word';}
+      else status='Learning';
+    }
+    return `<tr><td><b>${v.w}</b></td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${total?pct+'%':'—'}</td><td class="${cls}">${status}</td></tr>`;
+  }).join('');
+}
+
+function openParentMode(){
+  $('#parentPin').value='';
+  $('#parentPinError').textContent='';
+  $('#parentGate').classList.remove('hidden');
+  $('#parentDashboard').classList.add('hidden');
+  $('#parentOverlay').classList.add('show');
+  $('#parentOverlay').setAttribute('aria-hidden','false');
+  setTimeout(()=>$('#parentPin').focus(),50);
+}
+
+function closeParentMode(){
+  $('#parentOverlay').classList.remove('show');
+  $('#parentOverlay').setAttribute('aria-hidden','true');
+}
+
+function unlockParentMode(){
+  if($('#parentPin').value !== PARENT_PIN){
+    $('#parentPinError').textContent='Wrong PIN. Try again.';
+    $('#parentPin').select();
+    return;
+  }
+  renderParentDashboard();
+  $('#parentGate').classList.add('hidden');
+  $('#parentDashboard').classList.remove('hidden');
 }
 
 function answerQuestion(opt, btn){
   const q = window.currentQ;
   if(document.body.dataset.locked === '1') return;
   document.body.dataset.locked = '1';
-
   state.roundTotal++;
-  let reaction = '';
+  let reactionObj;
   if(opt === q.answer){
     state.roundCorrect++;
     state.streak++;
     state.score += 100 + (state.streak - 1) * 10;
     state.hits[q.i]++;
     if(state.hits[q.i] >= 2) state.wrong.delete(q.i);
+    trackAnswer(q.i, true);
     btn.classList.add('correct');
-    reaction = `<div class="cat-reaction">😸 Cat says: Purrfect. Brain gains unlocked!</div>`;
-    $('#feedback').innerHTML = `${reaction}<strong>Correct!</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
-    updateHeroCat(catGood[Math.floor(Math.random()*catGood.length)], 'Nice job.', 'That one looked strong. Keep the streak going.');
+    reactionObj = memeWins[Math.floor(Math.random()*memeWins.length)];
+    $('#feedback').innerHTML = `<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct!</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
+    if(streakPopups[state.streak]) setTimeout(()=>showPopup(streakPopups[state.streak]), 300);
+    if((state.idx+1) % 5 === 0 && state.idx+1 < state.order.length){
+      setTimeout(()=>showPopup({pic:'😹',title:'Checkpoint reached',text:'Five questions down. Keep the streak alive.'}), 350);
+    }
   } else {
     state.streak = 0;
     state.wrong.add(q.i);
     state.hits[q.i] = Math.max(0, state.hits[q.i] - 1);
+    trackAnswer(q.i, false);
     btn.classList.add('wrong');
-    $$('.answer').forEach(b => {
-      if(b.textContent === q.answer) b.classList.add('correct');
-    });
-    reaction = `<div class="cat-reaction">🙀 Cat says: No drama. Even smart cats miss one sometimes.</div>`;
-    $('#feedback').innerHTML = `${reaction}<strong>Correct answer: ${q.answer}</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
-    updateHeroCat(catOops[Math.floor(Math.random()*catOops.length)], 'Almost.', 'No problem — missed words come back for extra practice.');
+    $$('.answer').forEach(b=>{ if(b.textContent === q.answer) b.classList.add('correct'); });
+    reactionObj = memeOops[Math.floor(Math.random()*memeOops.length)];
+    $('#feedback').innerHTML = `<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct answer: ${q.answer}</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
   }
-
   $$('.answer').forEach(b => b.disabled = true);
   $('#feedback').classList.remove('hidden');
   $('#next').classList.remove('hidden');
   $('#streak').textContent = state.streak;
   updateStats();
 }
-
 function nextQuestion(){
   document.body.dataset.locked = '0';
   state.idx++;
   if(state.idx >= state.order.length) finishRound();
   else renderQuestion();
 }
-
 function finishRound(){
   $('#game').classList.add('hidden');
   $('#finish').classList.remove('hidden');
   const pct = Math.round((state.roundCorrect / Math.max(1, state.roundTotal)) * 100);
   $('#finishScore').textContent = `${state.roundCorrect} of ${state.roundTotal} correct • ${pct}%`;
-
   if(pct >= 90){
     $('#finishEmoji').textContent = '🏆😻';
-    $('#finishMessage').textContent = 'Excellent. Cat-approved vocabulary powers unlocked.';
-    updateHeroCat('😻','Cat Coach says: Meow-velous work.','You are ready for another mode or a quick Mixed Test.');
+    $('#finishMessage').textContent = 'Excellent. Cat-approved vocab powers unlocked.';
+    setTimeout(()=>showPopup({pic:'🏆',title:'Victory',text:'That was elite. The cat fully approves.'}), 250);
   } else if(pct >= 75){
-    $('#finishEmoji').textContent = '🔥🐱';
-    $('#finishMessage').textContent = 'Strong round. A quick review and you\'re golden.';
-    updateHeroCat('😺','Nice round.','A little review now will make the hard words easier.');
+    $('#finishEmoji').textContent = '🔥😼';
+    $('#finishMessage').textContent = 'Strong round. One quick review and you are golden.';
+    setTimeout(()=>showPopup({pic:'🔥',title:'Strong round',text:'You are close. Run it back once more.'}), 250);
   } else {
     $('#finishEmoji').textContent = '🧠🐾';
-    $('#finishMessage').textContent = 'Good practice. Hit Missed Words next and level up.';
-    updateHeroCat('🐱','Good effort.','Practice the missed words and then come back for round two.');
+    $('#finishMessage').textContent = 'Good practice. Hit Comeback Mode next.';
+    setTimeout(()=>showPopup({pic:'🧠',title:'Good effort',text:'Do Comeback Mode and the hard words will get easier.'}), 250);
   }
 }
-
 function buildStudySheet(){
   const study = $('#study');
   study.innerHTML = '';
@@ -279,15 +358,18 @@ function buildStudySheet(){
     study.appendChild(d);
   });
 }
-
-$$('.mode').forEach(b => b.addEventListener('click', ()=>startMode(b.dataset.mode)));
-$('#missedBtn').addEventListener('click', ()=>startMode('missed'));
+$$('.mode').forEach(b=>b.addEventListener('click',()=>startMode(b.dataset.mode)));
+$('#missedBtn').addEventListener('click',()=>startMode('missed'));
 $('#back').addEventListener('click', showMenu);
 $('#choose').addEventListener('click', showMenu);
 $('#again').addEventListener('click', ()=>startMode(state.mode));
 $('#next').addEventListener('click', nextQuestion);
-
+$('#parentBtn').addEventListener('click', openParentMode);
+$('#parentUnlock').addEventListener('click', unlockParentMode);
+$('#parentCancel').addEventListener('click', closeParentMode);
+$('#parentClose').addEventListener('click', closeParentMode);
+$('#parentPin').addEventListener('keydown', e=>{ if(e.key==='Enter') unlockParentMode(); });
+$('#parentOverlay').addEventListener('click', e=>{ if(e.target.id==='parentOverlay') closeParentMode(); });
 buildStudySheet();
 loadState();
 updateStats();
-updateHeroCat();
