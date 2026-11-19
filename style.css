@@ -8,3 +8,5 @@
 .cloud-panel{padding:14px 18px}.cloud-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.cloud-row strong{font-size:15px}.cloud-row .ghost{white-space:nowrap}
 .email-input{letter-spacing:0;text-align:left;font-size:16px}.parent-actions{display:flex;gap:8px;flex-wrap:wrap}.parent-actions .ghost{padding:9px 12px;font-size:12px}.parent-action-primary{max-width:260px}.pair-code-box{margin-top:12px;padding:16px;border-radius:18px;border:1px solid rgba(39,215,184,.3);background:rgba(39,215,184,.08);text-align:center}.pair-code-value{font-size:34px;font-weight:900;letter-spacing:.14em}.pair-input{letter-spacing:.18em}.sync-good{color:#79e4c8}.sync-warn{color:#ffd980}.sync-bad{color:#ff9caf}
 @media(max-width:740px){.cloud-row .ghost{width:100%}.parent-actions{width:100%}.parent-actions .ghost{flex:1}.parent-action-primary{max-width:none}}
+
+.meme-action{font:inherit;color:var(--text);width:100%;text-align:left;cursor:pointer}.meme-action:hover{transform:translateY(-2px) rotate(2deg);border-color:rgba(127,92,255,.55)}
