@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Sergio Study Hub</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div class="wrap">
-<section class="card hero"><div class="hero-top"><div><div class="badge">🐱 Sergio Study Hub</div><h1>Sergio, pick your challenge 🎯</h1><p class="sub">Short rounds, streaks, comeback practice, and meme-cat energy.</p><div class="stats"><div class="stat"><div class="n" id="score">0</div><div class="l">Total points</div></div><div class="stat"><div class="n" id="answeredCount">0</div><div class="l">Questions answered</div></div><div class="stat"><div class="n" id="bestStreak">0</div><div class="l">Best streak</div></div></div></div><div class="meme-stack"><div class="meme-card"><div class="meme-pic">😼</div><div class="meme-text"><strong>Big brain cat mode</strong><span>Study now. Zoomies later.</span></div></div><div class="meme-card"><div class="meme-pic">😹</div><div class="meme-text"><strong>Comeback energy</strong><span>Miss one? Run it back.</span></div></div></div></div></section>
+<section class="card hero"><div class="hero-top"><div><div class="badge">🐱 Sergio Study Hub</div><h1>Sergio, pick your challenge 🎯</h1><p class="sub">Short rounds, streaks, comeback practice, and meme-cat energy.</p><div class="stats"><div class="stat"><div class="n" id="score">0</div><div class="l">Total points</div></div><div class="stat"><div class="n" id="answeredCount">0</div><div class="l">Questions answered</div></div><div class="stat"><div class="n" id="bestStreak">0</div><div class="l">Best streak</div></div></div></div><div class="meme-stack"><div class="meme-card"><div class="meme-pic">😼</div><div class="meme-text"><strong>Big brain cat mode</strong><span>Study now. Zoomies later.</span></div></div><button class="meme-card meme-action" id="comebackEnergyBtn" type="button"><div class="meme-pic">😹</div><div class="meme-text"><strong>Comeback energy</strong><span>Miss one? Run it back.</span></div></button></div></div></section>
 
 <section id="hub" class="panel section"><h2 class="section-title">Choose a set</h2><div class="set-grid"><button class="set-card" data-set="english"><div class="set-icon">📚</div><div><strong>English Vocabulary</strong><span>20 words • meanings • sentences • synonyms • antonyms</span></div></button><button class="set-card spanish-card" data-set="spanish"><div class="set-icon">🇪🇸</div><div><strong>Spanish Numbers 1–10</strong><span>read • write • pronunciation • spelling • visual count</span></div></button></div></section>
 <section class="panel section cloud-panel">
@@ -27,6 +27,19 @@
 <section id="finish" class="panel finish hidden"><div class="big" id="finishEmoji">🏆😻</div><h2>Round complete!</h2><p id="finishScore" class="small"></p><p id="finishMessage"></p><div class="btn-grid"><button id="again" class="primary">Play again</button><button id="chooseAnother" class="ghost">Choose another set</button></div></section>
 
 <button id="parentBtn" class="parent-link" type="button">Parent</button>
+</div>
+
+<div id="comebackOverlay" class="overlay" aria-hidden="true">
+  <div class="popup">
+    <div class="popup-pic">😹</div>
+    <h3>Comeback energy</h3>
+    <p>Pick which missed questions you want to run back.</p>
+    <div class="popup-buttons">
+      <button id="englishComebackQuick" class="primary" type="button">📚 English Comeback</button>
+      <button id="spanishComebackQuick" class="primary" type="button">🇪🇸 Spanish Comeback</button>
+      <button id="comebackCancel" class="ghost" type="button">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <div id="popupOverlay" class="overlay"><div class="popup"><div id="popupPic" class="popup-pic">😼</div><h3 id="popupTitle">Big Brain Cat Mode</h3><p id="popupText">You’re cooking.</p><div class="popup-buttons"><button id="popupContinue" class="primary">Keep going</button><button id="popupClose" class="ghost">Close</button></div></div></div>
@@ -66,5 +79,5 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body></html>
