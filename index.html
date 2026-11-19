@@ -4,13 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Sergio Study Hub</title>
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <div class="wrap">
 <section class="card hero"><div class="hero-top"><div><div class="badge">🐱 Sergio Study Hub</div><h1>Sergio, pick your challenge 🎯</h1><p class="sub">Short rounds, streaks, comeback practice, and meme-cat energy.</p><div class="stats"><div class="stat"><div class="n" id="score">0</div><div class="l">Total points</div></div><div class="stat"><div class="n" id="answeredCount">0</div><div class="l">Questions answered</div></div><div class="stat"><div class="n" id="bestStreak">0</div><div class="l">Best streak</div></div></div></div><div class="meme-stack"><div class="meme-card"><div class="meme-pic">😼</div><div class="meme-text"><strong>Big brain cat mode</strong><span>Study now. Zoomies later.</span></div></div><div class="meme-card"><div class="meme-pic">😹</div><div class="meme-text"><strong>Comeback energy</strong><span>Miss one? Run it back.</span></div></div></div></div></section>
 
 <section id="hub" class="panel section"><h2 class="section-title">Choose a set</h2><div class="set-grid"><button class="set-card" data-set="english"><div class="set-icon">📚</div><div><strong>English Vocabulary</strong><span>20 words • meanings • sentences • synonyms • antonyms</span></div></button><button class="set-card spanish-card" data-set="spanish"><div class="set-icon">🇪🇸</div><div><strong>Spanish Numbers 1–10</strong><span>read • write • pronunciation • spelling • visual count</span></div></button></div></section>
+<section class="panel section cloud-panel">
+  <div class="cloud-row">
+    <div><strong>☁️ Study Cloud</strong><div id="cloudStatus" class="small">Checking connection…</div></div>
+    <button id="connectDeviceBtn" class="ghost" type="button">Connect this device</button>
+  </div>
+</section>
 
 <section id="englishMenu" class="panel section hidden"><div class="section-head"><button class="ghost backHub">← Study Hub</button><h2 class="section-title">📚 English Vocabulary</h2></div><div class="mode-grid"><button class="mode english-mode" data-mode="definition"><div class="icon">🧠</div><strong>Definition → Word</strong><span>Read the meaning and pick the word.</span></button><button class="mode english-mode" data-mode="word"><div class="icon">📖</div><strong>Word → Definition</strong><span>See the word and choose the meaning.</span></button><button class="mode english-mode" data-mode="context"><div class="icon">✏️</div><strong>Sentence Challenge</strong><span>Pick the word that fits.</span></button><button class="mode english-mode" data-mode="synonym"><div class="icon">🔁</div><strong>Synonyms</strong><span>Choose the closest meaning.</span></button><button class="mode english-mode" data-mode="antonym"><div class="icon">↔️</div><strong>Antonyms</strong><span>Choose the opposite meaning.</span></button><button class="mode english-mode" data-mode="mixed"><div class="icon">🔥</div><strong>Mixed Test</strong><span>Random mix of all styles.</span></button></div><div class="special-row"><button class="special english-mode" data-mode="missed"><div class="title">🎯 English Comeback Mode</div><div class="sub" id="englishMissedLabel">Practice missed words.</div></button></div></section>
 
@@ -25,7 +31,40 @@
 
 <div id="popupOverlay" class="overlay"><div class="popup"><div id="popupPic" class="popup-pic">😼</div><h3 id="popupTitle">Big Brain Cat Mode</h3><p id="popupText">You’re cooking.</p><div class="popup-buttons"><button id="popupContinue" class="primary">Keep going</button><button id="popupClose" class="ghost">Close</button></div></div></div>
 
-<div id="parentOverlay" class="overlay" aria-hidden="true"><div class="popup parent-popup"><div id="parentGate" class="parent-pin-wrap"><div class="popup-pic">🔒</div><h3>Parent Mode</h3><p>Enter the parent PIN to view Sergio’s study report.</p><input id="parentPin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Parent PIN"><div id="parentPinError" class="pin-error" aria-live="polite"></div><div class="popup-buttons"><button id="parentUnlock" class="primary" type="button">Open report</button><button id="parentCancel" class="ghost" type="button">Cancel</button></div></div><div id="parentDashboard" class="hidden"><div class="parent-head"><div><h3>📊 Sergio’s Study Report</h3><p id="parentLastActive">No activity yet</p></div><button id="parentClose" class="ghost" type="button">Close</button></div><div class="parent-grid"><div class="parent-stat"><div id="parentAccuracy" class="big-number">0%</div><div class="caption">Overall accuracy</div></div><div class="parent-stat"><div id="parentAnswered" class="big-number">0</div><div class="caption">Questions answered</div></div><div class="parent-stat"><div id="parentBestStreak" class="big-number">0</div><div class="caption">Best streak</div></div><div class="parent-stat"><div id="parentSpanishAccuracy" class="big-number">0%</div><div class="caption">Spanish accuracy</div></div></div><div class="parent-section"><h4>Practice modes</h4><div id="parentModes" class="mode-report"></div></div><div class="parent-section"><h4>Spanish Numbers</h4><div style="overflow:auto"><table class="word-table"><thead><tr><th>Word</th><th>#</th><th>Correct</th><th>Missed</th><th>Accuracy</th></tr></thead><tbody id="parentSpanishRows"></tbody></table></div></div></div></div></div>
+<div id="parentOverlay" class="overlay" aria-hidden="true"><div class="popup parent-popup">
+<div id="parentAuth" class="parent-pin-wrap hidden">
+  <div class="popup-pic">📧</div>
+  <h3>Parent Sign In</h3>
+  <p>Enter your email and we’ll send a secure sign-in link. You only need to do this once per device.</p>
+  <input id="parentEmail" class="pin-input email-input" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Parent email">
+  <div id="parentAuthMessage" class="pin-error" aria-live="polite"></div>
+  <div class="popup-buttons">
+    <button id="parentSendLink" class="primary" type="button">Email me a sign-in link</button>
+    <button id="parentAuthCancel" class="ghost" type="button">Cancel</button>
+  </div>
+</div>
+<div id="parentGate" class="parent-pin-wrap hidden"><div class="popup-pic">🔒</div><h3>Parent Mode</h3><p>Enter the parent PIN to view Sergio’s study report.</p><input id="parentPin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Parent PIN"><div id="parentPinError" class="pin-error" aria-live="polite"></div><div class="popup-buttons"><button id="parentUnlock" class="primary" type="button">Open report</button><button id="parentCancel" class="ghost" type="button">Cancel</button></div></div><div id="parentDashboard" class="hidden"><div class="parent-head"><div><h3>📊 Sergio’s Study Report</h3><p id="parentLastActive">No cloud activity yet</p><p id="parentCloudStatus" class="small"></p></div><div class="parent-actions"><button id="parentRefresh" class="ghost" type="button">Refresh</button><button id="parentSignOut" class="ghost" type="button">Sign out</button><button id="parentClose" class="ghost" type="button">Close</button></div></div><div class="parent-grid"><div class="parent-stat"><div id="parentAccuracy" class="big-number">0%</div><div class="caption">Overall accuracy</div></div><div class="parent-stat"><div id="parentAnswered" class="big-number">0</div><div class="caption">Questions answered</div></div><div class="parent-stat"><div id="parentBestStreak" class="big-number">0</div><div class="caption">Best streak</div></div><div class="parent-stat"><div id="parentSpanishAccuracy" class="big-number">0%</div><div class="caption">Spanish accuracy</div></div></div>
+<div class="parent-section">
+  <h4>Connect Sergio’s computer</h4>
+  <p class="small">Generate a one-time code here, then enter it once on Sergio’s computer.</p>
+  <button id="createPairCode" class="primary parent-action-primary" type="button">Generate pairing code</button>
+  <div id="parentPairCode" class="pair-code-box hidden"></div>
+</div>
+<div class="parent-section"><h4>Practice modes</h4><div id="parentModes" class="mode-report"></div></div><div class="parent-section"><h4>Spanish Numbers</h4><div style="overflow:auto"><table class="word-table"><thead><tr><th>Word</th><th>#</th><th>Correct</th><th>Missed</th><th>Accuracy</th></tr></thead><tbody id="parentSpanishRows"></tbody></table></div></div></div></div></div>
 
-<script src="app.js?v=6"></script>
+<div id="pairDeviceOverlay" class="overlay" aria-hidden="true">
+  <div class="popup">
+    <div class="popup-pic">🔗</div>
+    <h3>Connect this computer</h3>
+    <p>Enter the 8-digit code from Parent Mode. You only need to pair this browser once.</p>
+    <input id="pairCodeInput" class="pin-input pair-input" type="text" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="8-digit code" aria-label="Pairing code">
+    <div id="pairDeviceMessage" class="pin-error" aria-live="polite"></div>
+    <div class="popup-buttons">
+      <button id="pairDeviceSubmit" class="primary" type="button">Connect</button>
+      <button id="pairDeviceCancel" class="ghost" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0"></script>
+<script src="app.js?v=7"></script>
 </body></html>
