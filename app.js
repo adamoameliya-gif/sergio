@@ -1,4 +1,4 @@
-const vocab = [
+const englishVocab = [
 {w:'adjacent',def:'near, next to, adjoining',syn:['nearby','neighboring'],ant:['distant','faraway'],sent:'The library is ___ to the school, so students can walk there quickly.'},
 {w:'alight',def:'to get down from or come down from; to land',syn:['dismount','land'],ant:['board','mount'],sent:'The passengers began to ___ from the bus when it reached the museum.'},
 {w:'barren',def:'not productive; bare',syn:['sterile','desolate'],ant:['fertile','fruitful'],sent:'After months without rain, the field looked dry and ___.'},
@@ -20,356 +20,34 @@ const vocab = [
 {w:'truce',def:'a pause in fighting; temporary peace',syn:['cease-fire','temporary peace'],ant:['war','warfare'],sent:'The two sides agreed to a short ___.'},
 {w:'vicious',def:'evil, spiteful, malicious, or painfully severe',syn:['wicked','malicious'],ant:['kind','mild'],sent:'A ___ rumor spread through school and hurt her feelings.'}
 ];
-
-let state = {
-  mode:null,
-  order:[],
-  idx:0,
-  score:0,
-  streak:0,
-  wrong:new Set(),
-  hits:Array(vocab.length).fill(0),
-  roundCorrect:0,
-  roundTotal:0,
-  analytics:{
-    totalAnswered:0,
-    totalCorrect:0,
-    bestStreak:0,
-    lastActive:null,
-    modeRuns:{definition:0,word:0,context:0,synonym:0,antonym:0,mixed:0,missed:0},
-    wordStats:Array.from({length:vocab.length},()=>({correct:0,wrong:0}))
-  }
-};
-
-const PARENT_PIN = '2725';
-
-const memeWins = [
-  {pic:'😼',title:'Big Brain Cat Mode',text:'Streak rising. Sergio is cooking.'},
-  {pic:'😹',title:'Purrfect',text:'Brain gains unlocked.'},
-  {pic:'😻',title:'Main Character Energy',text:'That answer was clean.'},
-  {pic:'🐯',title:'Locked In',text:'Study now. Zoomies later.'}
-];
-const memeOops = [
-  {pic:'🙀',title:'No drama',text:'Even smart cats miss one sometimes.'},
-  {pic:'😿',title:'Reset and run it back',text:'One miss does not cancel the comeback.'},
-  {pic:'😾',title:'Bro...',text:'The cat saw that. Try again next round.'}
-];
-const streakPopups = {
-  3:{pic:'😼',title:'3 in a row!',text:'Nice. Big brain cat mode activated.'},
-  5:{pic:'😻',title:'5 streak!',text:'You are actually locked in right now.'},
-  8:{pic:'🐯',title:'8 streak!',text:'Okay Sergio, this is elite homework behavior.'}
-};
-
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; };
-
-function saveState(){
-  try{
-    localStorage.setItem('sergioVocabQuest', JSON.stringify({
-      score:state.score,
-      hits:state.hits,
-      wrong:[...state.wrong],
-      analytics:state.analytics
-    }));
-  }catch(e){}
-}
-function loadState(){
-  try{
-    const raw = localStorage.getItem('sergioVocabQuest');
-    if(!raw) return;
-    const parsed = JSON.parse(raw);
-    state.score = parsed.score || 0;
-    state.hits = parsed.hits || state.hits;
-    state.wrong = new Set(parsed.wrong || []);
-    if(parsed.analytics){
-      state.analytics.totalAnswered = parsed.analytics.totalAnswered || 0;
-      state.analytics.totalCorrect = parsed.analytics.totalCorrect || 0;
-      state.analytics.bestStreak = parsed.analytics.bestStreak || 0;
-      state.analytics.lastActive = parsed.analytics.lastActive || null;
-      state.analytics.modeRuns = {...state.analytics.modeRuns, ...(parsed.analytics.modeRuns || {})};
-      if(Array.isArray(parsed.analytics.wordStats)){
-        state.analytics.wordStats = state.analytics.wordStats.map((base,i)=>({ ...base, ...(parsed.analytics.wordStats[i] || {}) }));
-      }
-    }
-  }catch(e){}
-}
-function updateStats(){
-  $('#score').textContent = state.score;
-  $('#mastered').textContent = `${state.hits.filter(x => x >= 2).length}/20`;
-  $('#missedCount').textContent = state.wrong.size;
-  $('#missedLabel').textContent = state.wrong.size
-    ? `${state.wrong.size} word${state.wrong.size===1?'':'s'} ready for a comeback`
-    : 'No missed words yet — nice.';
-  saveState();
-}
-function showPopup(obj){
-  $('#popupPic').textContent = obj.pic;
-  $('#popupTitle').textContent = obj.title;
-  $('#popupText').textContent = obj.text;
-  $('#popupOverlay').classList.add('show');
-}
-function hidePopup(){
-  $('#popupOverlay').classList.remove('show');
-}
-$('#popupContinue').onclick = hidePopup;
-$('#popupClose').onclick = hidePopup;
-$('#popupOverlay').addEventListener('click', e => {
-  if(e.target.id === 'popupOverlay') hidePopup();
-});
-
-function showMenu(){
-  $('#game').classList.add('hidden');
-  $('#finish').classList.add('hidden');
-  $('#menu').classList.remove('hidden');
-}
-function modeTitle(m){
-  return {
-    definition:'Definition → Word',
-    word:'Word → Definition',
-    context:'Sentence Challenge',
-    synonym:'Synonyms',
-    antonym:'Antonyms',
-    mixed:'Mixed Test',
-    missed:'Comeback Mode'
-  }[m] || m;
-}
-function startMode(mode){
-  state.mode = mode;
-  state.idx = 0;
-  state.roundCorrect = 0;
-  state.roundTotal = 0;
-  state.streak = 0;
-  let pool = mode === 'missed' ? [...state.wrong] : vocab.map((_,i)=>i);
-  if(!pool.length){
-    showPopup({pic:'😺',title:'No missed words',text:'Nothing to review right now. That is a flex.'});
-    return;
-  }
-  state.order = shuffle(pool);
-  state.analytics.modeRuns[mode] = (state.analytics.modeRuns[mode] || 0) + 1;
-  state.analytics.lastActive = new Date().toISOString();
-  saveState();
-  $('#menu').classList.add('hidden');
-  $('#finish').classList.add('hidden');
-  $('#game').classList.remove('hidden');
-  renderQuestion();
-}
-function distractWordIndexes(i){
-  return shuffle(vocab.map((_,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3);
-}
-function buildQuestion(i){
-  const v = vocab[i];
-  const qMode = state.mode === 'mixed'
-    ? shuffle(['definition','word','context','synonym','antonym'])[0]
-    : state.mode;
-  let label='', prompt='', answer='', options=[];
-  if(qMode === 'definition'){
-    label = 'What word means…';
-    prompt = v.def;
-    answer = v.w;
-    options = shuffle([v.w, ...distractWordIndexes(i).map(j=>vocab[j].w)]);
-  }
-  if(qMode === 'word'){
-    label = 'Choose the best definition';
-    prompt = v.w;
-    answer = v.def;
-    options = shuffle([v.def, ...shuffle(vocab.map((x,j)=>j!==i?j:null).filter(v=>v!==null)).slice(0,3).map(j=>vocab[j].def)]);
-  }
-  if(qMode === 'context'){
-    label = 'Complete the sentence';
-    prompt = v.sent.replace('___','□□□□');
-    answer = v.w;
-    options = shuffle([v.w, ...distractWordIndexes(i).map(j=>vocab[j].w)]);
-  }
-  if(qMode === 'synonym'){
-    label = 'Choose the closest meaning';
-    prompt = `${v.w} is closest in meaning to…`;
-    answer = v.syn[0];
-    const pool = shuffle(vocab.flatMap((x,j)=>j===i ? [] : x.syn).filter(x=>x!==answer));
-    options = shuffle([answer, ...pool.slice(0,3)]);
-  }
-  if(qMode === 'antonym'){
-    label = 'Choose the opposite meaning';
-    prompt = `Which choice is an antonym of ${v.w}?`;
-    answer = v.ant[0];
-    const pool = shuffle(vocab.flatMap((x,j)=>j===i ? [] : x.ant).filter(x=>x!==answer));
-    options = shuffle([answer, ...pool.slice(0,3)]);
-  }
-  return {
-    i,qMode,label,prompt,answer,options,
-    explain:`${v.w} = ${v.def}`,
-    example:v.sent.replace('___', v.w)
-  };
-}
-function renderQuestion(){
-  const q = buildQuestion(state.order[state.idx]);
-  window.currentQ = q;
-  document.body.dataset.locked = '0';
-  $('#modeName').textContent = modeTitle(state.mode);
-  $('#progressText').textContent = `${state.idx+1}/${state.order.length}`;
-  $('#streak').textContent = state.streak;
-  $('#bar').style.width = `${((state.idx+1)/state.order.length)*100}%`;
-  $('#label').textContent = q.label;
-  $('#question').textContent = q.prompt;
-  $('#answers').innerHTML = '';
-  $('#feedback').classList.add('hidden');
-  $('#next').classList.add('hidden');
-  q.options.forEach(opt=>{
-    const b = document.createElement('button');
-    b.className = 'answer';
-    b.textContent = opt;
-    b.onclick = ()=>answerQuestion(opt,b);
-    $('#answers').appendChild(b);
-  });
-}
-function trackAnswer(wordIndex, isCorrect){
-  state.analytics.totalAnswered++;
-  if(isCorrect) state.analytics.totalCorrect++;
-  const item = state.analytics.wordStats[wordIndex] || {correct:0,wrong:0};
-  if(isCorrect) item.correct++; else item.wrong++;
-  state.analytics.wordStats[wordIndex] = item;
-  state.analytics.lastActive = new Date().toISOString();
-  state.analytics.bestStreak = Math.max(state.analytics.bestStreak, state.streak);
-}
-
-function renderParentDashboard(){
-  const a = state.analytics;
-  const accuracy = a.totalAnswered ? Math.round((a.totalCorrect/a.totalAnswered)*100) : 0;
-  $('#parentAccuracy').textContent = `${accuracy}%`;
-  $('#parentAnswered').textContent = a.totalAnswered;
-  $('#parentBestStreak').textContent = a.bestStreak;
-  $('#parentMastered').textContent = `${state.hits.filter(x=>x>=2).length}/${vocab.length}`;
-  $('#parentLastActive').textContent = a.lastActive ? `Last activity: ${new Date(a.lastActive).toLocaleString()}` : 'No activity yet';
-
-  const labels={definition:'Definition → Word',word:'Word → Definition',context:'Sentences',synonym:'Synonyms',antonym:'Antonyms',mixed:'Mixed Test',missed:'Comeback Mode'};
-  $('#parentModes').innerHTML = Object.entries(a.modeRuns).map(([key,val])=>`<span class="mode-chip">${labels[key] || key}: <b>${val}</b></span>`).join('');
-
-  $('#parentWordRows').innerHTML = vocab.map((v,i)=>{
-    const ws=a.wordStats[i] || {correct:0,wrong:0};
-    const total=ws.correct+ws.wrong;
-    const pct=total ? Math.round((ws.correct/total)*100) : 0;
-    let status='Not practiced';
-    let cls='';
-    if(total){
-      if(ws.wrong>=2 || pct<70){status='Needs practice';cls='needs-work';}
-      else if(pct>=85 && total>=2){status='Strong';cls='strong-word';}
-      else status='Learning';
-    }
-    return `<tr><td><b>${v.w}</b></td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${total?pct+'%':'—'}</td><td class="${cls}">${status}</td></tr>`;
-  }).join('');
-}
-
-function openParentMode(){
-  $('#parentPin').value='';
-  $('#parentPinError').textContent='';
-  $('#parentGate').classList.remove('hidden');
-  $('#parentDashboard').classList.add('hidden');
-  $('#parentOverlay').classList.add('show');
-  $('#parentOverlay').setAttribute('aria-hidden','false');
-  setTimeout(()=>$('#parentPin').focus(),50);
-}
-
-function closeParentMode(){
-  $('#parentOverlay').classList.remove('show');
-  $('#parentOverlay').setAttribute('aria-hidden','true');
-}
-
-function unlockParentMode(){
-  if($('#parentPin').value !== PARENT_PIN){
-    $('#parentPinError').textContent='Wrong PIN. Try again.';
-    $('#parentPin').select();
-    return;
-  }
-  renderParentDashboard();
-  $('#parentGate').classList.add('hidden');
-  $('#parentDashboard').classList.remove('hidden');
-}
-
-function answerQuestion(opt, btn){
-  const q = window.currentQ;
-  if(document.body.dataset.locked === '1') return;
-  document.body.dataset.locked = '1';
-  state.roundTotal++;
-  let reactionObj;
-  if(opt === q.answer){
-    state.roundCorrect++;
-    state.streak++;
-    state.score += 100 + (state.streak - 1) * 10;
-    state.hits[q.i]++;
-    if(state.hits[q.i] >= 2) state.wrong.delete(q.i);
-    trackAnswer(q.i, true);
-    btn.classList.add('correct');
-    reactionObj = memeWins[Math.floor(Math.random()*memeWins.length)];
-    $('#feedback').innerHTML = `<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct!</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
-    if(streakPopups[state.streak]) setTimeout(()=>showPopup(streakPopups[state.streak]), 300);
-    if((state.idx+1) % 5 === 0 && state.idx+1 < state.order.length){
-      setTimeout(()=>showPopup({pic:'😹',title:'Checkpoint reached',text:'Five questions down. Keep the streak alive.'}), 350);
-    }
-  } else {
-    state.streak = 0;
-    state.wrong.add(q.i);
-    state.hits[q.i] = Math.max(0, state.hits[q.i] - 1);
-    trackAnswer(q.i, false);
-    btn.classList.add('wrong');
-    $$('.answer').forEach(b=>{ if(b.textContent === q.answer) b.classList.add('correct'); });
-    reactionObj = memeOops[Math.floor(Math.random()*memeOops.length)];
-    $('#feedback').innerHTML = `<div class="reaction">${reactionObj.pic} ${reactionObj.title}</div><strong>Correct answer: ${q.answer}</strong><br>${q.explain}<br><span class="small">Example: ${q.example}</span>`;
-  }
-  $$('.answer').forEach(b => b.disabled = true);
-  $('#feedback').classList.remove('hidden');
-  $('#next').classList.remove('hidden');
-  $('#streak').textContent = state.streak;
-  updateStats();
-}
-function nextQuestion(){
-  document.body.dataset.locked = '0';
-  state.idx++;
-  if(state.idx >= state.order.length) finishRound();
-  else renderQuestion();
-}
-function finishRound(){
-  $('#game').classList.add('hidden');
-  $('#finish').classList.remove('hidden');
-  const pct = Math.round((state.roundCorrect / Math.max(1, state.roundTotal)) * 100);
-  $('#finishScore').textContent = `${state.roundCorrect} of ${state.roundTotal} correct • ${pct}%`;
-  if(pct >= 90){
-    $('#finishEmoji').textContent = '🏆😻';
-    $('#finishMessage').textContent = 'Excellent. Cat-approved vocab powers unlocked.';
-    setTimeout(()=>showPopup({pic:'🏆',title:'Victory',text:'That was elite. The cat fully approves.'}), 250);
-  } else if(pct >= 75){
-    $('#finishEmoji').textContent = '🔥😼';
-    $('#finishMessage').textContent = 'Strong round. One quick review and you are golden.';
-    setTimeout(()=>showPopup({pic:'🔥',title:'Strong round',text:'You are close. Run it back once more.'}), 250);
-  } else {
-    $('#finishEmoji').textContent = '🧠🐾';
-    $('#finishMessage').textContent = 'Good practice. Hit Comeback Mode next.';
-    setTimeout(()=>showPopup({pic:'🧠',title:'Good effort',text:'Do Comeback Mode and the hard words will get easier.'}), 250);
-  }
-}
-function buildStudySheet(){
-  const study = $('#study');
-  study.innerHTML = '';
-  vocab.forEach((v,i)=>{
-    const d = document.createElement('div');
-    d.className = 'study';
-    d.innerHTML = `<b>${i+1}. ${v.w}</b>
-      <div class="small" style="margin-top:5px">${v.def}</div>
-      <div class="small" style="margin-top:8px">Closest meaning: ${v.syn[0]} • Opposite: ${v.ant[0]}</div>`;
-    study.appendChild(d);
-  });
-}
-$$('.mode').forEach(b=>b.addEventListener('click',()=>startMode(b.dataset.mode)));
-$('#missedBtn').addEventListener('click',()=>startMode('missed'));
-$('#back').addEventListener('click', showMenu);
-$('#choose').addEventListener('click', showMenu);
-$('#again').addEventListener('click', ()=>startMode(state.mode));
-$('#next').addEventListener('click', nextQuestion);
-$('#parentBtn').addEventListener('click', openParentMode);
-$('#parentUnlock').addEventListener('click', unlockParentMode);
-$('#parentCancel').addEventListener('click', closeParentMode);
-$('#parentClose').addEventListener('click', closeParentMode);
-$('#parentPin').addEventListener('keydown', e=>{ if(e.key==='Enter') unlockParentMode(); });
-$('#parentOverlay').addEventListener('click', e=>{ if(e.target.id==='parentOverlay') closeParentMode(); });
-buildStudySheet();
-loadState();
-updateStats();
+const spanishNumbers=[{n:1,w:'uno',p:'oo-no'},{n:2,w:'dos',p:'dohs'},{n:3,w:'tres',p:'trehs'},{n:4,w:'cuatro',p:'koo-ah-troh'},{n:5,w:'cinco',p:'seen-coh'},{n:6,w:'seis',p:'say-es'},{n:7,w:'siete',p:'see-eh-teh'},{n:8,w:'ocho',p:'oh-choh'},{n:9,w:'nueve',p:'noo-eh-veh'},{n:10,w:'diez',p:'dee-ehs'}];
+const PARENT_PIN='2725';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const shuffle=a=>{const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x};
+const state={set:null,mode:null,order:[],idx:0,score:0,streak:0,roundCorrect:0,roundTotal:0,englishWrong:new Set(),spanishWrong:new Set(),analytics:{totalAnswered:0,totalCorrect:0,bestStreak:0,lastActive:null,modeRuns:{},spanishStats:Array.from({length:10},()=>({correct:0,wrong:0}))}};
+function save(){try{localStorage.setItem('sergioStudyHub',JSON.stringify({score:state.score,englishWrong:[...state.englishWrong],spanishWrong:[...state.spanishWrong],analytics:state.analytics}))}catch(e){}}
+function load(){try{const x=JSON.parse(localStorage.getItem('sergioStudyHub')||'null');if(!x)return;state.score=x.score||0;state.englishWrong=new Set(x.englishWrong||[]);state.spanishWrong=new Set(x.spanishWrong||[]);state.analytics={...state.analytics,...(x.analytics||{})};if(!Array.isArray(state.analytics.spanishStats))state.analytics.spanishStats=Array.from({length:10},()=>({correct:0,wrong:0}))}catch(e){}}
+function updateHeader(){$('#score').textContent=state.score;$('#answeredCount').textContent=state.analytics.totalAnswered;$('#bestStreak').textContent=state.analytics.bestStreak;$('#englishMissedLabel').textContent=state.englishWrong.size?`${state.englishWrong.size} word${state.englishWrong.size===1?'':'s'} to review.`:'No missed English words yet.';$('#spanishMissedLabel').textContent=state.spanishWrong.size?`${state.spanishWrong.size} Spanish number${state.spanishWrong.size===1?'':'s'} to review.`:'No missed Spanish numbers yet.';save()}
+function showOnly(id){['hub','englishMenu','spanishMenu','game','finish'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id))}
+function showHub(){state.set=null;showOnly('hub')}
+function showSetMenu(set){state.set=set;showOnly(set==='english'?'englishMenu':'spanishMenu')}
+function popup(pic,title,text){$('#popupPic').textContent=pic;$('#popupTitle').textContent=title;$('#popupText').textContent=text;$('#popupOverlay').classList.add('show')}
+function closePopup(){$('#popupOverlay').classList.remove('show')}
+$('#popupContinue').onclick=closePopup;$('#popupClose').onclick=closePopup;
+function setModeLabel(){const labels={definition:'Definition → Word',word:'Word → Definition',context:'Sentence Challenge',synonym:'Synonyms',antonym:'Antonyms',mixed:'Mixed Test',missed:'Comeback Mode',numberToWord:'Number → Spanish',wordToNumber:'Spanish → Number',pronunciation:'Pronunciation',spelling:'Spelling Check',visual:'Visual Count'};$('#modeName').textContent=labels[state.mode]||state.mode;$('#setName').textContent=state.set==='english'?'English Vocabulary':'Spanish Numbers'}
+function startMode(set,mode){state.set=set;state.mode=mode;state.idx=0;state.streak=0;state.roundCorrect=0;state.roundTotal=0;let pool;if(set==='english')pool=mode==='missed'?[...state.englishWrong]:englishVocab.map((_,i)=>i);else pool=mode==='missed'?[...state.spanishWrong]:spanishNumbers.map((_,i)=>i);if(!pool.length){popup('😺','Nothing to review','No missed items yet. That is a flex.');return}state.order=shuffle(pool);const key=`${set}:${mode}`;state.analytics.modeRuns[key]=(state.analytics.modeRuns[key]||0)+1;state.analytics.lastActive=new Date().toISOString();showOnly('game');renderQuestion()}
+function distract(pool,i,count=3){return shuffle(pool.map((_,j)=>j).filter(j=>j!==i)).slice(0,count)}
+function misspell(word){const variants=new Set();const swaps={c:'k',s:'z',u:'o',i:'e',e:'i',v:'b'};for(let i=0;i<word.length;i++){if(swaps[word[i]])variants.add(word.slice(0,i)+swaps[word[i]]+word.slice(i+1));if(i<word.length-1)variants.add(word.slice(0,i)+word[i+1]+word[i]+word.slice(i+2))}variants.add(word+word.slice(-1));variants.delete(word);return [...variants].filter(x=>x.length>=2)}
+function buildEnglish(i){const v=englishVocab[i];let m=state.mode==='mixed'?shuffle(['definition','word','context','synonym','antonym'])[0]:state.mode;if(m==='missed')m='definition';let label='',question='',answer='',options=[],visual='';if(m==='definition'){label='What word means…';question=v.def;answer=v.w;options=shuffle([v.w,...distract(englishVocab,i).map(j=>englishVocab[j].w)])}if(m==='word'){label='Choose the best definition';question=v.w;answer=v.def;options=shuffle([v.def,...distract(englishVocab,i).map(j=>englishVocab[j].def)])}if(m==='context'){label='Complete the sentence';question=v.sent.replace('___','□□□□');answer=v.w;options=shuffle([v.w,...distract(englishVocab,i).map(j=>englishVocab[j].w)])}if(m==='synonym'){label='Choose the closest meaning';question=`${v.w} is closest in meaning to…`;answer=v.syn[0];options=shuffle([answer,...shuffle(englishVocab.flatMap((x,j)=>j===i?[]:x.syn)).slice(0,3)])}if(m==='antonym'){label='Choose the opposite meaning';question=`Which choice is an antonym of ${v.w}?`;answer=v.ant[0];options=shuffle([answer,...shuffle(englishVocab.flatMap((x,j)=>j===i?[]:x.ant)).slice(0,3)])}return{i,label,question,answer,options,visual,explain:`${v.w} = ${v.def}`}}
+function buildSpanish(i){const v=spanishNumbers[i];let m=state.mode==='mixed'?shuffle(['numberToWord','wordToNumber','pronunciation','spelling','visual'])[0]:state.mode;if(m==='missed')m='numberToWord';let label='',question='',answer='',options=[],visual='';if(m==='numberToWord'){label='Choose the Spanish word';question=`How do you say ${v.n} in Spanish?`;answer=v.w;options=shuffle([v.w,...distract(spanishNumbers,i).map(j=>spanishNumbers[j].w)])}if(m==='wordToNumber'){label='Choose the number';question=`What number is “${v.w}”?`;answer=String(v.n);options=shuffle([String(v.n),...distract(spanishNumbers,i).map(j=>String(spanishNumbers[j].n))])}if(m==='pronunciation'){label='Match the pronunciation';question=`Which word matches “${v.p}”?`;answer=v.w;options=shuffle([v.w,...distract(spanishNumbers,i).map(j=>spanishNumbers[j].w)])}if(m==='spelling'){label='Spelling check';question=`Which spelling is correct for the Spanish word meaning ${v.n}?`;answer=v.w;let wrong=shuffle(misspell(v.w));while(wrong.length<3)wrong.push(...distract(spanishNumbers,i).map(j=>spanishNumbers[j].w));options=shuffle([v.w,...wrong.filter(x=>x!==v.w).slice(0,3)])}if(m==='visual'){label='Visual count';const icons=['⭐','🍎','⚽','🐱','🎈'];const icon=icons[i%icons.length];visual=Array(v.n).fill(icon).join(' ');question='How many do you see? Choose the Spanish word.';answer=v.w;options=shuffle([v.w,...distract(spanishNumbers,i).map(j=>spanishNumbers[j].w)])}return{i,label,question,answer,options,visual,explain:`${v.n} = ${v.w} (${v.p})`}}
+function renderQuestion(){const i=state.order[state.idx],q=state.set==='english'?buildEnglish(i):buildSpanish(i);window.currentQ=q;document.body.dataset.locked='0';setModeLabel();$('#progressText').textContent=`${state.idx+1}/${state.order.length}`;$('#streak').textContent=state.streak;$('#bar').style.width=`${((state.idx+1)/state.order.length)*100}%`;$('#label').textContent=q.label;$('#question').textContent=q.question;$('#visualPrompt').textContent=q.visual;$('#visualPrompt').classList.toggle('hidden',!q.visual);$('#answers').innerHTML='';$('#feedback').classList.add('hidden');$('#next').classList.add('hidden');q.options.forEach(opt=>{const b=document.createElement('button');b.className='answer';b.textContent=opt;b.onclick=()=>answerQuestion(opt,b);$('#answers').appendChild(b)})}
+function track(i,correct){state.analytics.totalAnswered++;if(correct)state.analytics.totalCorrect++;state.analytics.lastActive=new Date().toISOString();state.analytics.bestStreak=Math.max(state.analytics.bestStreak,state.streak);if(state.set==='spanish'){const s=state.analytics.spanishStats[i]||{correct:0,wrong:0};correct?s.correct++:s.wrong++;state.analytics.spanishStats[i]=s}}
+function answerQuestion(opt,btn){const q=window.currentQ;if(document.body.dataset.locked==='1')return;document.body.dataset.locked='1';const correct=opt===q.answer;state.roundTotal++;if(correct){state.roundCorrect++;state.streak++;state.score+=100+(state.streak-1)*10;if(state.set==='english')state.englishWrong.delete(q.i);else state.spanishWrong.delete(q.i);track(q.i,true);btn.classList.add('correct');$('#feedback').innerHTML=`<div class="reaction">😸 Purrfect</div><strong>Correct!</strong><br>${q.explain}`;if([3,5,8].includes(state.streak))setTimeout(()=>popup('😼',`${state.streak} in a row!`,'Big brain cat mode activated.'),250)}else{state.streak=0;if(state.set==='english')state.englishWrong.add(q.i);else state.spanishWrong.add(q.i);track(q.i,false);btn.classList.add('wrong');$$('.answer').forEach(b=>{if(b.textContent===q.answer)b.classList.add('correct')});$('#feedback').innerHTML=`<div class="reaction">🙀 No drama</div><strong>Correct answer: ${q.answer}</strong><br>${q.explain}`}$$('.answer').forEach(b=>b.disabled=true);$('#feedback').classList.remove('hidden');$('#next').classList.remove('hidden');$('#streak').textContent=state.streak;updateHeader()}
+function nextQuestion(){state.idx++;if(state.idx>=state.order.length)finishRound();else renderQuestion()}
+function finishRound(){showOnly('finish');const pct=Math.round((state.roundCorrect/Math.max(1,state.roundTotal))*100);$('#finishScore').textContent=`${state.roundCorrect} of ${state.roundTotal} correct • ${pct}%`;$('#finishEmoji').textContent=pct>=90?'🏆😻':pct>=75?'🔥😼':'🧠🐾';$('#finishMessage').textContent=pct>=90?'Excellent. Cat-approved.':pct>=75?'Strong round. Run it once more.':'Good practice. Comeback Mode will help.'}
+function renderSpanishStrip(){$('#spanishStudyStrip').innerHTML=spanishNumbers.map(x=>`<div class="mini-number"><b>${x.n} — ${x.w}</b><span>${x.p}</span></div>`).join('')}
+function openParent(){$('#parentPin').value='';$('#parentPinError').textContent='';$('#parentGate').classList.remove('hidden');$('#parentDashboard').classList.add('hidden');$('#parentOverlay').classList.add('show')}
+function closeParent(){$('#parentOverlay').classList.remove('show')}
+function renderParent(){const a=state.analytics;const acc=a.totalAnswered?Math.round(a.totalCorrect/a.totalAnswered*100):0;const st=a.spanishStats.reduce((t,x)=>({c:t.c+x.correct,w:t.w+x.wrong}),{c:0,w:0});const sacc=(st.c+st.w)?Math.round(st.c/(st.c+st.w)*100):0;$('#parentAccuracy').textContent=`${acc}%`;$('#parentAnswered').textContent=a.totalAnswered;$('#parentBestStreak').textContent=a.bestStreak;$('#parentSpanishAccuracy').textContent=`${sacc}%`;$('#parentLastActive').textContent=a.lastActive?`Last activity: ${new Date(a.lastActive).toLocaleString()}`:'No activity yet';$('#parentModes').innerHTML=Object.entries(a.modeRuns).map(([k,v])=>`<span class="mode-chip">${k}: <b>${v}</b></span>`).join('');$('#parentSpanishRows').innerHTML=spanishNumbers.map((x,i)=>{const s=a.spanishStats[i]||{correct:0,wrong:0},tot=s.correct+s.wrong,p=tot?Math.round(s.correct/tot*100):0;return `<tr><td><b>${x.w}</b></td><td>${x.n}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${tot?p+'%':'—'}</td></tr>`}).join('')}
+function unlockParent(){if($('#parentPin').value!==PARENT_PIN){$('#parentPinError').textContent='Wrong PIN. Try again.';return}renderParent();$('#parentGate').classList.add('hidden');$('#parentDashboard').classList.remove('hidden')}
+$$('.set-card').forEach(b=>b.onclick=()=>showSetMenu(b.dataset.set));$$('.backHub').forEach(b=>b.onclick=showHub);$$('.english-mode').forEach(b=>b.onclick=()=>startMode('english',b.dataset.mode));$$('.spanish-mode').forEach(b=>b.onclick=()=>startMode('spanish',b.dataset.spanishMode));$('#backToSet').onclick=()=>showSetMenu(state.set);$('#next').onclick=nextQuestion;$('#again').onclick=()=>startMode(state.set,state.mode);$('#chooseAnother').onclick=showHub;$('#parentBtn').onclick=openParent;$('#parentCancel').onclick=closeParent;$('#parentClose').onclick=closeParent;$('#parentUnlock').onclick=unlockParent;$('#parentPin').addEventListener('keydown',e=>{if(e.key==='Enter')unlockParent()});renderSpanishStrip();load();updateHeader();showHub();
